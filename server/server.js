@@ -26,14 +26,14 @@ app.use(express.static(path.join(__dirname, "www")))
 // API Test node to check if API Server is UP or not
 app.get("/test", (req, res) => res.status(200).send("API Server is Working."))
 
-app.get("/servers", (req, res) => {
-    console.log(req.query)
+app.get("/servers/:page", (req, res) => {
     const { storage, ram, hdd, location } = req.query
     handler.Server.fetchServers({
         storage,
         ram,
         hdd,
         location,
+        page: req.params.page,
     })
         .then((result) => res.status(200).json(result))
         .catch((err) => res.status(400).json({ status: 400, Error: "Failed" }))

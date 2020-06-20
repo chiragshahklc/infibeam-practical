@@ -74,16 +74,12 @@ class Dashboard extends React.Component {
         location: null,
         dataSource: [],
         locationFilters: [],
+        currPage: 1,
+        pages: 1,
+        isLoading: false,
     }
     componentDidMount() {
-        handler.API.fetchData({})
-            .then((data) => {
-                this.setState({ dataSource: data })
-            })
-            .catch(() => {
-                this.setState({ dataSource: [] })
-                message.error("Error while fetching data from server")
-            })
+        this.fetchData()
         handler.API.fetchLocationFilters()
             .then((data) => {
                 this.setState({ locationFilters: data.map((d) => d.DISTINCT) })
@@ -101,6 +97,9 @@ class Dashboard extends React.Component {
             location,
             dataSource,
             locationFilters,
+            currPage,
+            pages,
+            isLoading,
         } = this.state
         return (
             <>
@@ -161,35 +160,78 @@ class Dashboard extends React.Component {
                         </Button>
                     </Col>
                     <Col span="24">
+                        <h4>
+                            Page: {currPage} / {pages}
+                        </h4>
                         <Table
                             bordered
                             columns={columns}
                             dataSource={dataSource}
+                            pagination={false}
+                            loading={isLoading}
                         ></Table>
+                        <Button disabled={currPage === 1} onClick={this.onPrev}>
+                            Prev
+                        </Button>
+                        <Button
+                            disabled={currPage === pages}
+                            onClick={this.onNext}
+                        >
+                            Next
+                        </Button>
                     </Col>
                 </Row>
             </>
         )
     }
     onFilter = () => {
-        const { ram, hddType, location, storage } = this.state
-        const storageValues = storage.map(
-            (x) => storageFilter.marks[parseInt(x)]
+        this.fetchData()
+    }
+    onPrev = () => {
+        this.setState(
+            (prevState) => ({
+                currPage: prevState.currPage - 1,
+            }),
+            () => {
+                this.fetchData()
+            }
         )
-        let filter = ""
-        filter += `storage=${storageValues.join(",")}`
-        if (ram.length) filter += `${filter ? "&" : ""}ram=${ram.join(",")}`
-        if (hddType) filter += `${filter ? "&" : ""}hdd=${hddType}`
-        if (location) filter += `${filter ? "&" : ""}location=${location}`
-        if (filter) filter = `?` + filter
-        handler.API.fetchData({ filters: filter })
-            .then((data) => {
-                this.setState({ dataSource: data })
-            })
-            .catch(() => {
+    }
+    onNext = () => {
+        this.setState(
+            (prevState) => ({
+                currPage: prevState.currPage + 1,
+            }),
+            () => {
+                this.fetchData()
+            }
+        )
+    }
+    fetchData = () => {
+        this.setState({ isLoading: true }, async () => {
+            const { ram, hddType, location, storage, currPage } = this.state
+            const storageValues = storage.map(
+                (x) => storageFilter.marks[parseInt(x)]
+            )
+            let filter = ""
+            filter += `storage=${storageValues.join(",")}`
+            if (ram.length) filter += `${filter ? "&" : ""}ram=${ram.join(",")}`
+            if (hddType) filter += `${filter ? "&" : ""}hdd=${hddType}`
+            if (location) filter += `${filter ? "&" : ""}location=${location}`
+            if (filter) filter = `?` + filter
+            let data = await handler.API.fetchData({
+                filters: filter,
+                page: currPage,
+            }).catch(() => {
                 this.setState({ dataSource: [] })
                 message.error("Error while fetching data from server")
             })
+            this.setState({
+                dataSource: data.result,
+                pages: data.pages,
+                isLoading: false,
+            })
+        })
     }
 }
 

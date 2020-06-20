@@ -11,9 +11,9 @@ const uploadData = async ({ servers }) => {
     }
 }
 
-const fetchData = async ({ filters = "" }) => {
+const fetchData = async ({ filters = "", page = 1 }) => {
     try {
-        let result = await axios.get("/servers" + filters)
+        let result = await axios.get(`/servers/${page}` + filters)
         return result.data
     } catch (error) {
         throw new Error("Failed")
