@@ -1,0 +1,196 @@
+import React, { useState, useEffect } from "react"
+import {
+    Table,
+    Row,
+    Col,
+    Slider,
+    Checkbox,
+    Select,
+    message,
+    Button,
+} from "antd"
+import handler from "./handlers"
+const { Option } = Select
+const columns = [
+    {
+        title: "Model",
+        dataIndex: "model",
+    },
+    {
+        title: "RAM",
+        dataIndex: "ram",
+    },
+    {
+        title: "HDD",
+        dataIndex: "hdd",
+    },
+    {
+        title: "Location",
+        dataIndex: "location",
+    },
+    {
+        title: "Price",
+        dataIndex: "price",
+    },
+]
+const hddTypeFilters = [
+    { title: "SAS", value: "SAS" },
+    { title: "SATA", value: "SATA2" },
+    { title: "SSD", value: "SSD" },
+]
+const ramFilters = [
+    { label: "2GB", value: 2 },
+    { label: "4GB", value: 4 },
+    { label: "8GB", value: 8 },
+    { label: "12GB", value: 12 },
+    { label: "16GB", value: 16 },
+    { label: "24GB", value: 24 },
+    { label: "32GB", value: 32 },
+    { label: "48GB", value: 48 },
+    { label: "64GB", value: 64 },
+    { label: "96GB", value: 96 },
+]
+const storageFilter = {
+    marks: {
+        0: "0GB",
+        8: "250GB",
+        16: "500GB",
+        24: "1TB",
+        32: "2TB",
+        40: "3TB",
+        48: "4TB",
+        56: "8TB",
+        64: "12TB",
+        72: "24TB",
+        80: "48TB",
+        88: "72TB",
+    },
+}
+class Dashboard extends React.Component {
+    state = {
+        storage: [0, 72],
+        ram: [],
+        hddType: null,
+        location: null,
+        dataSource: [],
+        locationFilters: [],
+    }
+    componentDidMount() {
+        handler.API.fetchData({})
+            .then((data) => {
+                this.setState({ dataSource: data })
+            })
+            .catch(() => {
+                this.setState({ dataSource: [] })
+                message.error("Error while fetching data from server")
+            })
+        handler.API.fetchLocationFilters()
+            .then((data) => {
+                this.setState({ locationFilters: data.map((d) => d.DISTINCT) })
+            })
+            .catch(() => {
+                this.setState({ locationFilters: [] })
+                message.error("Error while fetching data from server")
+            })
+    }
+    render() {
+        const {
+            storage,
+            ram,
+            hddType,
+            location,
+            dataSource,
+            locationFilters,
+        } = this.state
+        return (
+            <>
+                <Row gutter={[16, 16]}>
+                    <Col span="24">
+                        <h3>Filters</h3>
+                        <h4>Storage</h4>
+                        <Slider
+                            range
+                            step={8}
+                            min={0}
+                            max={88}
+                            tipFormatter={null}
+                            value={storage}
+                            onChange={(value) =>
+                                this.setState({ storage: value })
+                            }
+                            marks={storageFilter.marks}
+                        ></Slider>
+                        <h4>RAM</h4>
+                        <Checkbox.Group
+                            options={ramFilters}
+                            value={ram}
+                            onChange={(value) => this.setState({ ram: value })}
+                        ></Checkbox.Group>
+                        <h4>HDD type</h4>
+                        <Select
+                            placeholder="Select HDD Type"
+                            value={hddType}
+                            allowClear
+                            onChange={(value) =>
+                                this.setState({ hddType: value })
+                            }
+                        >
+                            {hddTypeFilters.map((hddType) => (
+                                <Option value={hddType.value}>
+                                    {hddType.title}
+                                </Option>
+                            ))}
+                        </Select>
+                        <h4>Location</h4>
+                        <Select
+                            placeholder="Select Location"
+                            value={location}
+                            allowClear
+                            onChange={(value) =>
+                                this.setState({ location: value })
+                            }
+                        >
+                            {locationFilters.map((location) => (
+                                <Option value={location}>{location}</Option>
+                            ))}
+                        </Select>
+                    </Col>
+                    <Col span="24">
+                        <Button type="primary" onClick={this.onFilter}>
+                            Filter
+                        </Button>
+                    </Col>
+                    <Col span="24">
+                        <Table
+                            bordered
+                            columns={columns}
+                            dataSource={dataSource}
+                        ></Table>
+                    </Col>
+                </Row>
+            </>
+        )
+    }
+    onFilter = () => {
+        const { ram, hddType, location, storage } = this.state
+        const storageValues = storage.map(
+            (x) => storageFilter.marks[parseInt(x)]
+        )
+        let filter = ""
+        filter += `storage=${storageValues.join(",")}`
+        if (ram.length) filter += `${filter ? "&" : ""}ram=${ram.join(",")}`
+        if (hddType) filter += `${filter ? "&" : ""}hdd=${hddType}`
+        if (location) filter += `${filter ? "&" : ""}location=${location}`
+        if (filter) filter = `?` + filter
+        handler.API.fetchData({ filters: filter })
+            .then((data) => {
+                this.setState({ dataSource: data })
+            })
+            .catch(() => {
+                this.setState({ dataSource: [] })
+                message.error("Error while fetching data from server")
+            })
+    }
+}
+
+export default Dashboard

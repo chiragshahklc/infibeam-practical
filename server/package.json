@@ -1,0 +1,27 @@
+{
+  "name": "infibeam-practical-server",
+  "version": "1.0.0",
+  "description": "Practical test given by Infibeam Avenue team to me.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "author": {
+    "name": "Chirag Shah",
+    "email": "chiragshahklc@gmail.com"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "helmet": "^3.23.1",
+    "mariadb": "^2.4.0",
+    "morgan": "^1.10.0",
+    "sequelize": "^5.21.13"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
