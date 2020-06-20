@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React from "react"
 import {
     Table,
     Row,
@@ -207,6 +207,7 @@ class Dashboard extends React.Component {
             }
         )
     }
+    // fetch data with filters and pagination
     fetchData = () => {
         this.setState({ isLoading: true }, async () => {
             const { ram, hddType, location, storage, currPage } = this.state

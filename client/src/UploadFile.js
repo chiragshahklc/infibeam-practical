@@ -2,7 +2,6 @@ import React from "react"
 import { Button, Upload, message, Row, Col } from "antd"
 import { UploadOutlined } from "@ant-design/icons"
 import excel from "exceljs"
-import PropTypes from "prop-types"
 import handler from "./handlers"
 
 class UploadFile extends React.Component {
@@ -84,7 +83,5 @@ class UploadFile extends React.Component {
         else message.warning("No data available to upload")
     }
 }
-
-UploadFile.propTypes = {}
 
 export default UploadFile
